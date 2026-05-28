@@ -1469,7 +1469,7 @@ vmod_director__init(VRT_CTX,
     assert(SSL_FLAG_IS_BOOL(ssl_sni));
     assert(SSL_FLAG_IS_BOOL(ssl_verify_peer));
     assert(SSL_FLAG_IS_BOOL(ssl_verify_host));
-    ##undef SSL_FLAG_IS_BOOL
+    #undef SSL_FLAG_IS_BOOL
 
 	if (ssl_sni == ssl_nosni) {
 		VRT_fail(ctx, "dynamic.director(): ssl_sni(%lld) and ssl_nosni(%lld) are mutually exclusive", ssl_sni, ssl_nosni);
