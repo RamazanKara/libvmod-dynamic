@@ -343,11 +343,11 @@ Parameters:
 
     - *ssl*
 
-      Enable SSL transport on this backend , see also `ssl`_.
+      Enable TLS/SSL transport on this backend , see also `ssl`_.
 
     - *ssl_noverify*
 
-      Skip SSL verification.
+      Skip TLS/SSL verification.
 
     - *ssl_nosni*
 
@@ -359,11 +359,11 @@ Parameters:
 
     - *ssl_verify_peer*
 
-      Enable SSL peer validation.
+      Enable TLS/SSL peer validation.
 
     - *ssl_verify_host*
 
-      Enable SSL host validation.
+      Enable TLS/SSL host validation.
 
 	- *resolver*
 
@@ -435,7 +435,7 @@ Parameters:
 
 	- *ssl* (default: 0)
 
-	  Enable SSL transport on this director. All `ssl_` parameters map to `backend` SSL attributes and require Varnish 9.x with TLS support.
+	  Enable TLS/SSL transport on this director. All `ssl_` parameters map to `backend` SSL attributes and require Varnish 9.x with TLS support.
 	  On Vinyl Cache or unsupported builds, setting `ssl=1` will result in a runtime error.
 
 Parameters to set attributes of backends

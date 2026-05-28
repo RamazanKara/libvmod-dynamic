@@ -34,7 +34,7 @@ nodist_libvmod_dynamic_la_SOURCES = \
 	vcc_dynamic_if.c \
 	vcc_dynamic_if.h
 
-vmod_vcs_version.txt: vcc_dynamic_if.c
+vmod_vcs_version.txt: $(nodist_libvmod_dynamic_la_SOURCES)
 
 DISTCLEANFILES = vmod_vcs_version.txt
 
