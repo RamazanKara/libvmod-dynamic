@@ -23,3 +23,7 @@ autoconf
 
 cd "$WORK_DIR"
 "$ROOT_DIR"/configure "$@"
+
+if [ ! -f ".git" ]; then
+  echo "trunk" > src/vmod_vcs_version.txt
+fi
