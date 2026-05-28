@@ -1472,17 +1472,17 @@ vmod_director__init(VRT_CTX,
     #undef SSL_FLAG_IS_BOOL
 
 	if (ssl_sni == ssl_nosni) {
-		VRT_fail(ctx, "dynamic.director(): ssl_sni(%lld) and ssl_nosni(%lld) are mutually exclusive", ssl_sni, ssl_nosni);
+		VRT_fail(ctx, "dynamic.director(): ssl_sni and ssl_nosni are mutually exclusive");
 		return;
 	}
 
 	if (ssl_noverify == ssl_verify_peer) {
-		VRT_fail(ctx, "dynamic.director(): ssl_noverify(%lld) and ssl_verify_peer(%lld) are mutually exclusive", ssl_noverify, ssl_verify_peer);
+		VRT_fail(ctx, "dynamic.director(): ssl_noverify and ssl_verify_peer are mutually exclusive");
 		return;
 	}
 
 	if (ssl_noverify == ssl_verify_host) {
-		VRT_fail(ctx, "dynamic.director(): ssl_noverify(%lld) and ssl_verify_host(%lld) are mutually exclusive", ssl_noverify, ssl_verify_host);
+		VRT_fail(ctx, "dynamic.director(): ssl_noverify and ssl_verify_host are mutually exclusive");
 		return;
 	}
 
@@ -1494,7 +1494,7 @@ vmod_director__init(VRT_CTX,
 	obj->ssl_verify_host = ssl_verify_host;
 #else
     if (ssl) {
-		VRT_fail(ctx, "dynamic.director(): ssl(%lld) is enabled but not supported on this instance", ssl);
+		VRT_fail(ctx, "dynamic.director(): ssl is enabled but not supported on this instance");
 		return;
     }
 #endif
