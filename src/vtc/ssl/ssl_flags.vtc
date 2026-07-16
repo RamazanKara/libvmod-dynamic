@@ -1,0 +1,34 @@
+varnishtest "SSL flags"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl {
+	import dynamic;
+
+	backend proforma none;
+
+	sub vcl_init {
+		new d1 = dynamic.director(
+		    port = "${s1_port}",
+		    host_header = "www.example.com",
+		    ssl = 1,
+		);
+	}
+
+	sub vcl_recv {
+		set req.backend_hint = d1.backend(req.http.host);
+	}
+
+	sub vcl_backend_error {
+		# the director may resolve ::1 first
+		return (retry);
+	}
+} -start
+
+client c1 {
+	txreq -hdr "Host: www.example.com"
+	rxresp
+} -run

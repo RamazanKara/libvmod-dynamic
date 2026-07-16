@@ -50,8 +50,12 @@ AC_CHECK_HEADERS([cache/cache.h], [],
 save_CFLAGS="$CFLAGS"
 CFLAGS="$VARNISHAPI_CFLAGS $CFLAGS"
 AC_CHECK_MEMBER([struct vrt_endpoint.sslflags],
-	[AC_DEFINE([HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS], [1], [Check for TLS support: sslflags is present in struct vrt_endpoint (Varnish 9.x and higher)])],
-	[], [[#include <cache/cache.h>]])
+	[AC_DEFINE([HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS], [1], [Check for TLS support: sslflags is present in struct vrt_endpoint (Varnish 9.x and higher)])
+	 AM_CONDITIONAL([HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS], [true])
+     AC_SUBST([VTC_TESTS], "$VTC_TESTS $(cd $srcdir/src && echo vtc/ssl/*.vtc)")],
+	[AM_CONDITIONAL([HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS], [false])
+     AS_MESSAGE([SSL flags on directors will not be available])],
+    [[#include <cache/cache.h>]])
 CFLAGS="$save_CFLAGS"
 
 AC_CONFIG_FILES([
