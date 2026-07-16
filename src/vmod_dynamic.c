@@ -679,7 +679,6 @@ ref_add(VRT_CTX, struct dynamic_ref *r)
 	#ifdef HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS
 	ep.hosthdr = vrt.hosthdr;
 
-
 	if (dom->obj->ssl) {
         if (vrt.hosthdr == NULL) {
             VRT_fail(ctx, "host header is required for SSL enabled backends");
@@ -727,6 +726,12 @@ ref_add(VRT_CTX, struct dynamic_ref *r)
 	    ep.sslflags &= ~BSSL_F_VERIFY_HOST;
 	    DBG(ctx, dom, "skipping host verification on endpoint for %s", vcl_name);
 	}
+	#else
+	if (dom->obj->ssl) {
+	    VRT_fail(ctx, "failed to set ssl on director %s. %s was built without SSL support", vcl_name, PACKAGE);
+	    return;
+	}
+
     #endif
 	vrt.endpoint = &ep;
 
