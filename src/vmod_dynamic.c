@@ -679,7 +679,13 @@ ref_add(VRT_CTX, struct dynamic_ref *r)
 	#ifdef HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS
 	ep.hosthdr = vrt.hosthdr;
 
+
 	if (dom->obj->ssl) {
+        if (vrt.hosthdr == NULL) {
+            VRT_fail(ctx, "host header is required for SSL enabled backends");
+            return;
+        }
+
 	    ep.sslflags |= BSSL_F_ENABLE;
 	    DBG(ctx, dom, "enabling ssl on endpoint for %s", vcl_name);
 	} else {
