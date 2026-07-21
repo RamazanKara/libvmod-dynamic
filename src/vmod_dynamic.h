@@ -182,6 +182,7 @@ struct vmod_dynamic_director {
 	VCL_DURATION				domain_usage_tmo;
 	VCL_DURATION				first_lookup_tmo;
 	VCL_DURATION				wait_timeout;
+	VCL_BOOL				lookup_on_create;
 	unsigned				max_connections;
 	unsigned				wait_limit;
 	unsigned				proxy_header;

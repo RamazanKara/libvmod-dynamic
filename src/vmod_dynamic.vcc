@@ -252,7 +252,8 @@ $Object director(
 	INT keep				= 3,
 	STRING authority			= NULL,
 	DURATION wait_timeout = -1,
-	INT wait_limit = 0)
+	INT wait_limit = 0,
+	BOOL lookup_on_create = 1)
 
 Description
 	Create a DNS director.
@@ -299,6 +300,12 @@ Parameters:
 	  Delay until the director fails lookup when a domain is
 	  requested for the first time and there is no response from
 	  the name service (defaults to ten seconds)
+
+	- *lookup_on_create*
+
+	  Start resolving domains when they are created (defaults to
+	  ``true``). Set to ``false`` to defer resolution until a backend is
+	  first used.
 
 	- *resolver*
 
@@ -756,6 +763,7 @@ examples are abbreviated.
             "between_bytes_timeout": -1.00,
             "domain_usage_timeout": 7200.00,
             "first_lookup_timeout": 10.00,
+            "lookup_on_create": true,
             "max_connections": 0,
             "proxy_header": 0,
             "resolver": "getaddrinfo",

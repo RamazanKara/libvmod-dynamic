@@ -231,6 +231,8 @@ dynamic_task_ref(VRT_CTX, VCL_BACKEND *d)
 /* placeholder for backends to be created */
 static const VCL_BACKEND creating = (void*)(uintptr_t)0xc3;
 
+static int dom_start_locked(struct dynamic_domain *dom);
+
 void
 dom_wait_active(struct dynamic_domain *dom)
 {
@@ -348,6 +350,10 @@ dom_resolve(VRT_CTX, VCL_BACKEND d)
 		dynamic_gc_expired(dom->obj);
 
 	Lck_Lock(&dom->mtx);
+	if (! dom_start_locked(dom)) {
+		Lck_Unlock(&dom->mtx);
+		return (NULL);
+	}
 	r = dom_find(ctx, dom, dom->current, NULL, NULL, 1);
 	dom->current = r;
 	if (r != NULL)
@@ -383,6 +389,12 @@ dom_healthy(VRT_CTX, VCL_BACKEND d, VCL_TIME *changed)
 		 * condition wait. For regular use on the backend side, we
 		 * return cached if we can not acquire the lock immediately.
 		 */
+		if (changed != NULL)
+			*changed = dom->changed_cached;
+		return (dom->healthy_cached);
+	}
+	if (! dom_start_locked(dom)) {
+		Lck_Unlock(&dom->mtx);
 		if (changed != NULL)
 			*changed = dom->changed_cached;
 		return (dom->healthy_cached);
@@ -1084,6 +1096,31 @@ dom_destroy(VCL_BACKEND dir)
 	dom_free(&dom);
 }
 
+static int
+dom_start_locked(struct dynamic_domain *dom)
+{
+	int error;
+
+	CHECK_OBJ_NOTNULL(dom, DYNAMIC_DOMAIN_MAGIC);
+
+	if (dom->status == DYNAMIC_ST_STARTING ||
+	    dom->status == DYNAMIC_ST_ACTIVE)
+		return (1);
+
+	assert(dom->status == DYNAMIC_ST_READY);
+	dom->status = DYNAMIC_ST_STARTING;
+	AZ(dom->thread);
+	error = pthread_create(&dom->thread, NULL, dom_lookup_thread, dom);
+	if (error == 0)
+		return (1);
+
+	dom->thread = 0;
+	dom->status = DYNAMIC_ST_READY;
+	LOG(NULL, SLT_Error, dom, "pthread_create %d (%s)", error,
+	    strerror(error));
+	return (0);
+}
+
 static void v_matchproto_(vdi_event_f)
 dom_event(VCL_BACKEND dir, enum vcl_event_e ev)
 {
@@ -1096,20 +1133,19 @@ dom_event(VCL_BACKEND dir, enum vcl_event_e ev)
 	switch (ev) {
 	case VCL_EVENT_WARM:
 		// early start in _get
-		if (dom->status == DYNAMIC_ST_STARTING ||
-		    dom->status == DYNAMIC_ST_ACTIVE)
+		if (! dom->obj->lookup_on_create)
 			break;
-		assert(dom->status == DYNAMIC_ST_READY);
-		dom->status = DYNAMIC_ST_STARTING;
-		AZ(dom->thread);
-		AZ(pthread_create(&dom->thread, NULL, dom_lookup_thread, dom));
+		Lck_Lock(&dom->mtx);
+		(void)dom_start_locked(dom);
+		Lck_Unlock(&dom->mtx);
 		break;
 	case VCL_EVENT_DISCARD:
-		if (dom->status == DYNAMIC_ST_READY)
-			break;
-		/* FALLTHROUGH */
 	case VCL_EVENT_COLD:
 		Lck_Lock(&dom->mtx);
+		if (dom->status == DYNAMIC_ST_READY) {
+			Lck_Unlock(&dom->mtx);
+			break;
+		}
 		if (dom->status <= DYNAMIC_ST_ACTIVE)
 			dom->status = DYNAMIC_ST_DONE;
 		AZ(pthread_cond_signal(&dom->cond));
@@ -1333,7 +1369,8 @@ vmod_director__init(VRT_CTX,
     VCL_INT keep,
     VCL_STRING authority,
     VCL_DURATION wait_timeout,
-    VCL_INT wait_limit)
+    VCL_INT wait_limit,
+    VCL_BOOL lookup_on_create)
 {
 	struct vmod_dynamic_director *obj;
 
@@ -1403,6 +1440,7 @@ vmod_director__init(VRT_CTX,
 	obj->between_bytes_tmo = between_bytes_timeout;
 	obj->domain_usage_tmo = domain_usage_timeout;
 	obj->first_lookup_tmo = first_lookup_timeout;
+	obj->lookup_on_create = lookup_on_create;
 	obj->max_connections = (unsigned)max_connections;
 	obj->proxy_header = (unsigned)proxy_header;
 	obj->ttl_from = dynamic_ttl_parse(ttl_from_arg);
