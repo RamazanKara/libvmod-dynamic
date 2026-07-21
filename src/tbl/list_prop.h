@@ -12,6 +12,7 @@ DIRPROP("first_byte_timeout",	"%.2f", obj->first_byte_tmo)
 DIRPROP("between_bytes_timeout","%.2f", obj->between_bytes_tmo)
 DIRPROP("domain_usage_timeout", "%.2f", obj->domain_usage_tmo)
 DIRPROP("first_lookup_timeout", "%.2f", obj->first_lookup_tmo)
+DIRPROP("resolve_on_warm", "%s", obj->resolve_on_warm ? "true" : "false")
 DIRPROP("max_connections",	"%u",	obj->max_connections)
 #ifdef HAVE_STRUCT_VRT_ENDPOINT_SSLFLAGS
 DIRPROP("ssl",	"%s",	obj->ssl ? "true" : "false")

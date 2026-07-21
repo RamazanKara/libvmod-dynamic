@@ -1,0 +1,59 @@
+varnishtest "deferred lookup with 500 backends"
+
+feature cmd "getent hosts localhost"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl {backend none none;} -start
+
+shell {
+	cat >${tmpdir}/deferred_warmup.vcl <<-EOF
+	vcl 4.1;
+	import directors;
+	import dynamic;
+
+	backend none none;
+
+	sub vcl_init {
+		new d1 = dynamic.director(resolve_on_warm = false);
+		new rr = directors.round_robin();
+		rr.add_backend(d1.backend("localhost", port = "${s1_port}"));
+	EOF
+	i=1
+	while [ $i -lt 500 ]; do
+		port=$((10000 + i))
+		printf '\t\trr.add_backend(d1.backend("localhost", port = "%s"));\n' "$port" >>${tmpdir}/deferred_warmup.vcl
+		i=$((i + 1))
+	done
+	cat >>${tmpdir}/deferred_warmup.vcl <<-EOF
+	}
+
+	sub vcl_recv {
+		set req.backend_hint = d1.backend("localhost", port = "${s1_port}");
+		return (pass);
+	}
+
+	sub vcl_backend_error {
+		# the director may resolve ::1 first
+		return (retry);
+	}
+	EOF
+}
+
+varnish v1 -cliok "vcl.load deferred ${tmpdir}/deferred_warmup.vcl"
+varnish v1 -cliok "vcl.use deferred"
+varnish v1 -cliok "vcl.discard vcl1"
+
+client c1 {
+	txreq
+	rxresp
+	expect resp.status == 200
+} -run
+
+varnish v1 -expect VBE.deferred.d1(${s1_addr}:${s1_port}).req == 1
+
+varnish v1 -vcl {backend none none;}
+varnish v1 -cliok "vcl.discard deferred"

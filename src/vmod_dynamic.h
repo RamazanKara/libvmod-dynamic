@@ -182,6 +182,7 @@ struct vmod_dynamic_director {
 	VCL_DURATION				domain_usage_tmo;
 	VCL_DURATION				first_lookup_tmo;
 	VCL_DURATION				wait_timeout;
+	VCL_BOOL				resolve_on_warm;
 	VCL_INT ssl;
 	VCL_INT ssl_noverify;
 	VCL_INT ssl_nosni;
