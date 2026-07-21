@@ -350,7 +350,7 @@ dom_resolve(VRT_CTX, VCL_BACKEND d)
 		dynamic_gc_expired(dom->obj);
 
 	Lck_Lock(&dom->mtx);
-	if (! dom_start_locked(dom)) {
+	if (!dom_start_locked(dom)) {
 		Lck_Unlock(&dom->mtx);
 		return (NULL);
 	}
