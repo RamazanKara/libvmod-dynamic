@@ -393,7 +393,7 @@ dom_healthy(VRT_CTX, VCL_BACKEND d, VCL_TIME *changed)
 			*changed = dom->changed_cached;
 		return (dom->healthy_cached);
 	}
-	if (! dom_start_locked(dom)) {
+	if (!dom_start_locked(dom)) {
 		Lck_Unlock(&dom->mtx);
 		if (changed != NULL)
 			*changed = dom->changed_cached;
